@@ -1,0 +1,28 @@
+EXAMPLE OUTPUT OF TEXT TRANSFORMATION
+-------------------------------------
+
+A base class is created for use with the GIVEN WHEN THEN unit test scenario.
+
+
+	public abstract class GivenAProductRepository : SpecificationBase
+	{
+		protected ProductRepository ProductRepository;
+
+		protected GivenAProductRepository()
+		{
+			ProductRepository = new ProductRepository();
+		}
+	}
+
+    	public abstract class SpecificationBase
+    	{
+        	[SetUp]
+	        public void Setup()
+        	{
+	            Given();
+	            When();
+        	}
+
+        	public virtual void Given(){}
+        	public virtual void When(){}
+    	}
