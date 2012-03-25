@@ -1,0 +1,42 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="T4Toolbox.tt" #>
+<#
+var T4TemplatePath = Path.GetDirectoryName(Host.TemplateFile);
+var assembly = Assembly.LoadFile(T4TemplatePath + @"\..\TestBaseGenerator.Tests\bin\Debug\TestBaseGenerator.Repository.dll");
+List<string> _requiredNamespaces = new List<string>();
+var workingType = assembly.GetTypes()[0];
+var importedNameSpace = workingType.Namespace; #>
+using System;
+using Moq;
+<#
+foreach (Type type in assembly.GetTypes())
+{
+	if(!_requiredNamespaces.Contains(type.Namespace))
+		_requiredNamespaces.Add(type.Namespace);
+}
+foreach (string ns in _requiredNamespaces)
+{
+	WriteLine("using " + ns + ";");
+}
+#>
+
+namespace <#= TransformationContext.DefaultNamespace #>
+{
+	public partial class TestContext
+	{
+<#
+foreach (Type type in assembly.GetTypes())
+{
+	PushIndent("\t");
+	PushIndent("\t");
+	WriteLine("public Mock<" + type.Name + "> Mock" + type.Name + " = new Mock<" + type.Name + ">();");
+	PopIndent();
+	PopIndent();
+}
+#>
+	}
+}

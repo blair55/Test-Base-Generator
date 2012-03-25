@@ -1,0 +1,88 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ VolatileAssembly processor="T4Toolbox.VolatileAssemblyProcessor"
+	name="D:\Projects\TestBaseGenerator\TestBaseGenerator\TestBaseGenerator.Repository\bin\Debug\TestBaseGenerator.Repository.dll" #>
+<#@ import namespace="TestBaseGenerator.Repository" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ include file="T4Toolbox.tt" #>
+<#
+//var T4TemplatePath = Path.GetDirectoryName(Host.TemplateFile);
+//var assembly = Assembly.Load(new AssemblyName("TestBaseGenerator.Repository.dll"));
+var _assembly = typeof(TestBaseGenerator.Repository.DepartmentRepository).Assembly;
+var _requiredNamespaces = new List<string>(); #>
+using System;
+using Moq;
+<#
+foreach (Type type in _assembly.GetTypes())
+{
+	if(!_requiredNamespaces.Contains(type.Namespace))
+		_requiredNamespaces.Add(type.Namespace);
+}
+foreach (string ns in _requiredNamespaces)
+{
+	WriteLine("using " + ns + ";");
+}
+#>
+
+namespace <#= TransformationContext.DefaultNamespace #>
+{
+<#
+foreach (Type type in _assembly.GetTypes())
+{
+	var isFirstLetterAVowel = Regex.IsMatch(type.Name.Substring(0, 1).ToLower(), "[aeiou]");
+	var className = "GivenA" + (isFirstLetterAVowel ? "n" : "") + type.Name;
+#>
+	public abstract class <#= className #> : SpecificationBase
+	{
+		protected <#= type.Name #> <#= type.Name #>;
+<#
+	var constructorinfo = type.GetConstructors();
+	var parameters = constructorinfo[0].GetParameters();
+	
+	PushIndent("\t");
+	PushIndent("\t");
+	
+	for(var i=0; i<parameters.Length; i++)
+	{
+		var paramName = parameters[i].ParameterType.Name;
+		WriteLine("protected Mock<" + paramName + "> Mock" + paramName + " = new Mock<" + paramName + ">();");
+	}
+
+	PopIndent();
+	PopIndent();
+#>
+
+		protected <#= className #>()
+		{
+<#	
+	PushIndent("\t");
+	PushIndent("\t");
+	PushIndent("\t");
+	Write(type.Name + " = new " + type.Name + "(");
+	PushIndent("\t");
+	
+	for(var i=0; i<parameters.Length; i++)
+	{
+		WriteLine("");
+		Write("Mock" + parameters[i].ParameterType.Name + ".Object");
+		
+		if(i<parameters.Length-1)
+			Write(",");
+	}
+	
+	PopIndent();
+	WriteLine(");");
+	PopIndent();
+	PopIndent();
+	PopIndent();
+#>
+		}
+	}
+
+<#
+}
+#>
+}
